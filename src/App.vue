@@ -1,25 +1,19 @@
 <template>
   <div>
     <div>
-      <label for="event">Event:</label>
+      <label for="event">Event:(出生、小事件、小学、中学...)</label>
       <input v-model="event" id="event" />
     </div>
-    <div>
-      <label for="meAge">Me Age:</label>
-      <input v-model="meAge" id="meAge" />
+
+    <!-- 默认显示的输入框 -->
+    <div v-for="legend in legends" :key="legend">
+      <label :for="`${legend}Age`">{{ `${legend} Age:` }}</label>
+      <input v-model="formData[legend]" :id="`${legend}Age`" />
     </div>
-    <div>
-      <label for="fatherAge">Father Age:</label>
-      <input v-model="fatherAge" id="fatherAge" />
-    </div>
-    <div>
-      <label for="motherAge">Mother Age:</label>
-      <input v-model="motherAge" id="motherAge" />
-    </div>
-    <div>
-      <label for="sisterAge">Sister Age:</label>
-      <input v-model="sisterAge" id="sisterAge" />
-    </div>
+
+    <!-- 添加新的 legend 按钮 -->
+    <button @click="addLegend">Add Legend</button>
+
     <button @click="addData">Add Data</button>
 
     <v-chart class="chart" :option="option" />
@@ -32,35 +26,49 @@ import { ref, computed } from "vue";
 const data = ref([]);
 
 const event = ref("");
-const meAge = ref("");
-const fatherAge = ref("");
-const motherAge = ref("");
-const sisterAge = ref("");
+const formData = ref({
+  me: "",
+  father: "",
+  mother: "",
+  sister: "",
+});
+const legends = ref(["me", "father", "mother"]);
+
+const addLegend = () => {
+  const newLegend = prompt('Enter a new legend:');
+  if (newLegend && !legends.value.includes(newLegend)) {
+    legends.value.push(newLegend);
+    formData.value[newLegend] = ""; // 初始化新 legend 的值
+  }
+};
 
 const addData = () => {
-  data.value.push({
+  const newData = {
     event: event.value,
-    me: Number(meAge.value),
-    father: Number(fatherAge.value),
-    mother: Number(motherAge.value),
-    sister: Number(sisterAge.value),
+  };
+
+  // 将 formData 中的值添加到 newData
+  legends.value.forEach((legend) => {
+    newData[legend] = Number(formData.value[legend]) || null;
   });
+
+  data.value.push(newData);
 
   // 清空输入框
   event.value = "";
-  meAge.value = "";
-  fatherAge.value = "";
-  motherAge.value = "";
-  sisterAge.value = "";
+  legends.value.forEach((legend) => {
+    formData.value[legend] = "";
+  });
 };
 
 const option = computed(() => {
   const xAxisData = data.value.map((d) => d.event);
 
-  const meData = data.value.map((d) => d.me);
-  const fatherData = data.value.map((d) => d.father);
-  const motherData = data.value.map((d) => d.mother);
-  const sisterData = data.value.map((d) => d.sister);
+  const series = legends.value.map((legend) => ({
+    name: legend,
+    type: 'line',
+    data: data.value.map((d) => d[legend] || null),
+  }));
 
   return {
     title: {
@@ -70,7 +78,7 @@ const option = computed(() => {
       trigger: 'axis',
     },
     legend: {
-      data: ['me', 'father', 'mother', 'sister'],
+      data: legends.value,
     },
     grid: {
       left: '3%',
@@ -91,28 +99,7 @@ const option = computed(() => {
     yAxis: {
       type: 'value',
     },
-    series: [
-      {
-        name: 'me',
-        type: 'line',
-        data: meData,
-      },
-      {
-        name: 'father',
-        type: 'line',
-        data: fatherData,
-      },
-      {
-        name: 'mother',
-        type: 'line',
-        data: motherData,
-      },
-      {
-        name: 'sister',
-        type: 'line',
-        data: sisterData,
-      },
-    ],
+    series,
   };
 });
 
@@ -124,4 +111,3 @@ const option = computed(() => {
   margin-top: 100px;
 }
 </style>
-5
