@@ -1,74 +1,26 @@
 <template>
-  <div>
-    <div>
-      <label for="event">Event:(出生、小事件、小学、中学...)</label>
-      <input v-model="event" id="event" />
-    </div>
-
-    <!-- 默认显示的输入框 -->
-    <div v-for="legend in legends" :key="legend">
-      <label :for="`${legend}Age`">{{ `${legend} Age:` }}</label>
-      <input v-model="formData[legend]" :id="`${legend}Age`" />
-    </div>
-
-    <!-- 添加新的 legend 按钮 -->
-    <button @click="addLegend">Add Legend</button>
-
-    <button @click="addData">Add Data</button>
-
-    <v-chart class="chart" :option="option" />
-  </div>
+  <v-chart class="chart" :option="option" />
 </template>
 
 <script setup>
 import { ref, computed } from "vue";
 
-const data = ref([]);
-
-const event = ref("");
-const formData = ref({
-  me: "",
-  father: "",
-  mother: "",
-  sister: "",
-});
-const legends = ref(["me", "father", "mother"]);
-
-const addLegend = () => {
-  const newLegend = prompt('Enter a new legend:');
-  if (newLegend && !legends.value.includes(newLegend)) {
-    legends.value.push(newLegend);
-    formData.value[newLegend] = ""; // 初始化新 legend 的值
-  }
-};
-
-const addData = () => {
-  const newData = {
-    event: event.value,
-  };
-
-  // 将 formData 中的值添加到 newData
-  legends.value.forEach((legend) => {
-    newData[legend] = Number(formData.value[legend]) || null;
-  });
-
-  data.value.push(newData);
-
-  // 清空输入框
-  event.value = "";
-  legends.value.forEach((legend) => {
-    formData.value[legend] = "";
-  });
-};
+const data = ref([
+  { age: '0', event: '出生' },
+  { age: '6', event: '小学' },
+  { age: '12', event: '中学' },
+  { age: '15', event: '高中' },
+  { age: '18', event: '大学' },
+  { age: '21', event: '大四' },
+]);
 
 const option = computed(() => {
-  const xAxisData = data.value.map((d) => d.event);
+  const xAxisData = data.value.map(d => d.event);
 
-  const series = legends.value.map((legend) => ({
-    name: legend,
-    type: 'line',
-    data: data.value.map((d) => d[legend] || null),
-  }));
+  const meData = data.value.map(d => Number(d.age));
+  const fatherData = [29, 35, 41, 44, 47, 50];
+  const motherData = [32, 38, 44, 47, 50, 53];
+  const sisterData = [6, 12, 18, 21, 24, 27];
 
   return {
     title: {
@@ -78,7 +30,7 @@ const option = computed(() => {
       trigger: 'axis',
     },
     legend: {
-      data: legends.value,
+      data: ['me', 'father', 'mother', 'sister'],
     },
     grid: {
       left: '3%',
@@ -99,7 +51,28 @@ const option = computed(() => {
     yAxis: {
       type: 'value',
     },
-    series,
+    series: [
+      {
+        name: 'me',
+        type: 'line',
+        data: meData,
+      },
+      {
+        name: 'father',
+        type: 'line',
+        data: fatherData,
+      },
+      {
+        name: 'mother',
+        type: 'line',
+        data: motherData,
+      },
+      {
+        name: 'sister',
+        type: 'line',
+        data: sisterData,
+      },
+    ],
   };
 });
 
